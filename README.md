@@ -1,3 +1,15 @@
+# User Settings React Demo
+
+Small Vite + React demo containing a `UserSettingsForm` component that persists to `localStorage`.
+
+Run locally:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL shown by Vite (usually http://localhost:5173).
 # FlyRank Capstone Project
 
 FlyRank is a capstone web application project designed to showcase a polished, full-stack development workflow. This README provides a professional foundation for documenting the project, its technology stack, and the steps needed to run it locally.

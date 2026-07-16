@@ -1,0 +1,16 @@
+:root{--bg:#f7f8fb;--card:#fff;--text:#0f1720;--muted:#6b7280;--accent:#2563eb}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);margin:0;padding:24px}
+.app{max-width:780px;margin:0 auto}
+header h1{margin:0 0 16px;font-size:20px}
+.settings-form{background:var(--card);padding:16px;border-radius:8px;box-shadow:0 1px 0 rgba(16,24,40,0.04)}
+.settings-form label{display:block;margin-bottom:12px;font-size:14px}
+.settings-form input[type="text"],.settings-form input[type="email"],.settings-form select,.settings-form textarea{width:100%;padding:8px 10px;margin-top:6px;border:1px solid #e6edf3;border-radius:6px}
+.settings-form .checkbox{display:flex;align-items:center}
+.actions{display:flex;gap:8px;margin-top:8px}
+button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+button.muted{background:#eef2ff;color:var(--accent)}
+.error{color:#b91c1c;margin-top:6px;font-size:13px}
+.notice{margin-top:12px;padding:8px 10px;border-radius:6px;background:#f8fafc;color:var(--muted)}
+.notice.success{background:#def7ec;color:#065f46}
+.notice.error{background:#fff1f2;color:#9f1239}
