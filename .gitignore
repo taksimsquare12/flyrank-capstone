@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Environment variables (API Keys Protect Karein)
+.env
+.env.local
+.env*.local
