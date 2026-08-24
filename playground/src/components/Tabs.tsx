@@ -1,86 +1,66 @@
-import React, { useState, useRef, KeyboardEvent } from 'react';
+'use client';
 
-interface TabItem {
+import React, { useState, useRef, useEffect } from 'react';
+
+interface Tab {
   id: string;
   label: string;
   content: React.ReactNode;
 }
 
 interface TabsProps {
-  items: TabItem[];
-  defaultTabId?: string;
+  tabs: Tab[];
+  defaultTab?: string;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ items, defaultTabId }) => {
-  const [activeTabId, setActiveTabId] = useState<string>(
-    defaultTabId || items[0]?.id || ''
+export function Tabs({ tabs, defaultTab }: TabsProps) {
+  const [activeTab, setActiveTab] = useState<string>(
+    defaultTab || tabs[0]?.id || ''
   );
-  const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    let nextIndex = index;
-
-    if (event.key === 'ArrowRight') {
-      nextIndex = (index + 1) % items.length;
-    } else if (event.key === 'ArrowLeft') {
-      nextIndex = (index - 1 + items.length) % items.length;
-    } else if (event.key === 'Home') {
-      nextIndex = 0;
-    } else if (event.key === 'End') {
-      nextIndex = items.length - 1;
-    } else {
-      return;
-    }
-
-    event.preventDefault();
-    const nextTab = items[nextIndex];
-    setActiveTabId(nextTab.id);
-    tabRefs.current[nextTab.id]?.focus();
-  };
+  useEffect(() => {
+    tabsRef.current = tabsRef.current.slice(0, tabs.length);
+  }, [tabs]);
 
   return (
     <div className="w-full">
-      <div role="tablist" aria-label="Accessible Tabs Example" className="flex border-b border-gray-200 gap-2">
-        {items.map((item, index) => {
-          const isSelected = item.id === activeTabId;
+      {/* Tab Navigation Header */}
+      <div className="flex border-b border-gray-200 dark:border-gray-800 space-x-2">
+        {tabs.map((tab, index) => {
+          const isActive = activeTab === tab.id;
           return (
             <button
-              key={item.id}
-              ref={(el) => (tabRefs.current[item.id] = el)}
-              role="tab"
-              aria-selected={isSelected}
-              aria-controls={`panel-${item.id}`}
-              id={`tab-${item.id}`}
-              tabIndex={isSelected ? 0 : -1}
-              onClick={() => setActiveTabId(item.id)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 ${
-                isSelected
-                  ? 'border-emerald-600 text-emerald-600 font-bold'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              key={tab.id}
+              ref={(el) => {
+                tabsRef.current[index] = el;
+              }}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                isActive
+                  ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-semibold'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
-              {item.label}
+              {tab.label}
             </button>
           );
         })}
       </div>
-      {items.map((item) => {
-        const isSelected = item.id === activeTabId;
-        return (
-          <div
-            key={item.id}
-            id={`panel-${item.id}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${item.id}`}
-            hidden={!isSelected}
-            tabIndex={0}
-            className="p-4 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          >
-            {item.content}
-          </div>
-        );
-      })}
+
+      {/* Tab Content Panel */}
+      <div className="py-4">
+        {tabs.map((tab) => {
+          if (tab.id !== activeTab) return null;
+          return (
+            <div key={tab.id} className="focus:outline-none">
+              {tab.content}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
-};
+}
+
+export default Tabs;

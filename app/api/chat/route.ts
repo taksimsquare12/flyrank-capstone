@@ -1,3 +1,4 @@
+
 import { generateText } from 'ai';
 import { CHAT_MODEL, SYSTEM_PROMPT } from '@/lib/ai-config';
 
@@ -16,7 +17,6 @@ export async function POST(req: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    console.error('API Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
