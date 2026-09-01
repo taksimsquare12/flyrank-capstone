@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FlyRank Capstone: Production AI Chat & 3D Interactive Web Experience
 
-## Getting Started
+A high-performance, accessible, and responsive Next.js 16 application featuring real-time AI response streaming, custom GLSL fragment shaders, and interactive 3D WebGL scenes built for the Frontend AI Engineering Track.
 
-First, run the development server:
+- **Production URL:** https://flyrank-capstone.vercel.app
+- **Repository:** https://github.com/taksimsquare12/flyrank-capstone
+---
+
+## 📸 Screenshots & Architecture Overview
+
+The application integrates streaming AI model interactions alongside WebGL graphics:
+1. **AI Chat Interface (`FE-09`):** Real-time token streaming with `aria-live` accessible announcements and request cancellation controls.
+2. **Interactive 3D Configurator (`FE-AA2`):** React Three Fiber (R3F) model viewer with real-time material swapping and dynamic lighting.
+3. **Shader Hero Section (`FE-AA3`):** Custom GLSL fragment shader utilizing `u_time`, `u_resolution`, and `u_mouse` uniforms.
+
+---
+
+## 🛠️ Tech Stack & Dependencies
+
+- **Framework:** Next.js 16 (App Router, Server Actions, Dynamic Client Components)
+- **Language & Styling:** TypeScript, Tailwind CSS
+- **3D & Shaders:** Three.js, `@react-three/fiber`, `@react-three/drei`
+- **Testing & CI:** Vitest (`happy-dom` environment), GitHub Actions CI Pipeline
+- **Deployment & Hosting:** Vercel (Edge runtime, Automatic SSL, Production Environment)
+
+---
+
+## 🔒 Production Protection & API Hygiene
+
+To prevent credit drainage and ensure API reliability:
+- **Rate Limiting & Input Caps:** Message inputs are capped at a maximum character limit frontend/backend and debounced to prevent duplicate requests.
+- **Handler Timeouts:** Streaming handlers configured with explicit `maxDuration = 30` seconds on Vercel serverless execution.
+- **Graceful Error Handling:** Fallback UI badges and retry actions trigger on network interruption or rate-limit hits.
+
+---
+
+## 🔑 Environment Variables
+
+To run this project locally, create a `.env.local` file in the root directory:
+
+| Variable Name | Description | Required | Default |
+| :--- | :--- | :--- | :--- |
+| `NEXT_PUBLIC_APP_URL` | Base application URL for CORS and metadata canonicals | Yes | `http://localhost:3000` |
+| `OPENAI_API_KEY` | API Key for AI streaming backend | Yes | `your_api_key_here` |
+| `NEXT_PUBLIC_ANALYTICS_ID` | Vercel Analytics tracking token | No | `opt_in_token` |
+
+---
+
+## 🚀 Local Run & Installation Instructions
 
 ```bash
+# 1. Clone the repository
+git clone [https://github.com/taksimsquare12/flyrank-capstone.git](https://github.com/taksimsquare12/flyrank-capstone.git)
+
+# 2. Navigate to root directory
+cd flyrank-capstone
+
+# 3. Install dependencies
+npm install
+
+# 4. Start local development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
