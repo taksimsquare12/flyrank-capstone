@@ -1,194 +1,134 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 
-type Message = {
+export interface Message {
   id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  isError?: boolean;
-};
+  sender: 'user' | 'assistant';
+  text: string;
+  status?: 'pending' | 'sent' | 'error';
+}
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorState, setErrorState] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  const sendMessage = async (textToSend: string) => {
+    if (!textToSend.trim() || isLoading) return;
 
-  const sendMessage = async (userPrompt: string, isRetry = false) => {
-    if (!userPrompt.trim() || isLoading) return;
+    const userMsgId = Date.now().toString();
+    const newMsg: Message = { id: userMsgId, sender: 'user', text: textToSend, status: 'sent' };
 
-    setErrorState(null);
-
-    let updatedMessages = messages;
-    if (!isRetry) {
-      const userMsg: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: userPrompt.trim(),
-      };
-      updatedMessages = [...messages, userMsg];
-      setMessages(updatedMessages);
-      setInput('');
-    }
-
+    setMessages((prev) => [...prev, newMsg]);
+    setInput('');
     setIsLoading(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: updatedMessages.filter((m) => !m.isError) }),
+        body: JSON.stringify({ message: textToSend }),
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
+        throw new Error('Network response was not ok');
       }
 
       const data = await response.json();
+      const assistantMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'assistant',
+        text: data.text || 'Response received.',
+      };
 
-      setMessages((prev) => [
-        ...prev.filter((m) => !m.isError),
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.text || 'Response completed.',
-        },
-      ]);
-    } catch (err: any) {
-      setErrorState(err.message || 'Network request failed');
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: '⚠️ Message delivery failed. Please check your network connection or try again.',
-          isError: true,
-        },
-      ]);
+      setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      setError('Message delivery failed');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(input);
+  };
+
   const handleRetry = () => {
-    const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
-    if (lastUserMessage) {
-      setMessages((prev) => prev.filter((m) => !m.isError));
-      sendMessage(lastUserMessage.content, true);
+    const lastUserMsg = [...messages].reverse().find((m) => m.sender === 'user');
+    if (lastUserMsg) {
+      sendMessage(lastUserMsg.text);
     }
   };
 
   return (
-    <div className="flex flex-col h-[85vh] w-full max-w-3xl mx-auto border rounded-2xl bg-white shadow-xl dark:bg-gray-900 dark:border-gray-800 overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b bg-emerald-600 text-white flex justify-between items-center">
-        <h2 className="font-semibold text-lg">AI Capstone Assistant</h2>
-        <span className="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-mono">
-          FE-08 Error & Edge Protected
-        </span>
+    <div className="flex flex-col h-[500px] w-full max-w-2xl mx-auto border border-slate-800 bg-slate-900 rounded-2xl p-4 text-white">
+      <div className="pb-3 border-b border-slate-800 mb-4">
+        <h2 className="text-xl font-bold">Start a Conversation</h2>
+        <p className="text-xs text-slate-400">FE-09 Validated AI Chat Renderer</p>
       </div>
 
-      {/* Chat Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
-        {/* Designed Empty State */}
+      <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12 px-4">
-            <div className="p-4 bg-emerald-100 dark:bg-emerald-950/60 rounded-full mb-3 text-emerald-600 dark:text-emerald-400">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-              Start a Conversation
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mb-6">
-              Ask questions about your project, request code reviews, or evaluate an audit score.
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {[
-                'Show audit score breakdown',
-                'Analyze frontend code architecture',
-                'Test API error handling',
-              ].map((suggestion, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => sendMessage(suggestion)}
-                  className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-emerald-500 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
+          <div className="text-center text-slate-500 my-auto pt-10">
+            Start a conversation by typing below.
           </div>
         )}
 
-        {/* Messages Rendering */}
-        {messages.map((m) => (
-          <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                m.isError
-                  ? 'bg-red-50 text-red-900 border border-red-200 dark:bg-red-950/40 dark:border-red-800 dark:text-red-200'
-                  : m.role === 'user'
-                  ? 'bg-emerald-600 text-white rounded-br-none'
-                  : 'bg-white text-gray-900 border border-gray-200 shadow-sm dark:bg-gray-800 dark:text-white dark:border-gray-700 rounded-bl-none'
+              className={`max-w-[80%] rounded-xl px-4 py-2 text-sm ${
+                msg.sender === 'user'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-800 text-slate-200 border border-slate-700'
               }`}
             >
-              {m.content}
-
-              {/* Retry Button for Failed State */}
-              {m.isError && (
-                <div className="mt-3">
-                  <button
-                    onClick={handleRetry}
-                    disabled={isLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded-md transition-colors"
-                  >
-                    🔄 Retry Message
-                  </button>
-                </div>
-              )}
+              {msg.text}
             </div>
           </div>
         ))}
 
-        {/* Loading Skeleton */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-800 border rounded-2xl px-4 py-3 text-sm text-gray-500 animate-pulse flex items-center gap-2">
-              <span className="w-2 h-2 bg-emerald-600 rounded-full animate-ping"></span>
+            <div className="bg-slate-800 text-slate-400 rounded-xl px-4 py-2 text-sm italic border border-slate-700">
               Thinking and streaming tokens...
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
+
+        {error && (
+          <div className="flex flex-col items-center gap-2 p-3 bg-rose-950/40 border border-rose-800/50 rounded-xl my-2">
+            <span className="text-xs text-rose-400 font-medium">{error}</span>
+            <button
+              onClick={handleRetry}
+              type="button"
+              className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Retry Message
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Input Bar */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendMessage(input);
-        }}
-        className="p-3 border-t bg-white dark:bg-gray-950 flex gap-2"
-      >
+      <form onSubmit={handleFormSubmit} className="flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 px-4 py-2 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:bg-gray-900 dark:text-white"
+          placeholder="Type your prompt..."
+          className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
         />
         <button
           type="submit"
-          disabled={isLoading || !input.trim()}
-          className="px-5 py-2 bg-emerald-600 text-white text-sm rounded-xl hover:bg-emerald-700 disabled:opacity-50 font-medium"
+          disabled={!input.trim() || isLoading}
+          className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white font-semibold text-sm px-5 py-2 rounded-xl transition-all"
         >
           Send
         </button>
@@ -196,3 +136,5 @@ export function ChatInterface() {
     </div>
   );
 }
+
+export default ChatInterface;
